@@ -12,16 +12,17 @@ endif
 CAT	:= cat$(EXEC_EXT)
 SED := sed$(EXEC_EXT)
 
-#DUMMY := $(shell $(ROOT_DIR)/bin/generate_platform.sh $(ARDUINO_HOME)/platform.txt $(ROOT_DIR)/bin/$(ARDUINO_ARCH)/platform.txt)
-#runtime.platform.path = $(ARDUINO_HOME)
-#include $(ROOT_DIR)/bin/$(ARDUINO_ARCH)/platform.txt
-
-SERIAL_PORT ?= /dev/tty.nodemcu
-
 ARDUINO_ARCH ?= esp8266
 ARDUINO_HOME ?=  $(ROOT_DIR)/$(ARDUINO_ARCH)
 ARDUINO_VARIANT ?= nodemcu
 ARDUINO_VERSION ?= 10605
+
+DUMMY := $(shell $(ROOT_DIR)/bin/generate_platform.sh $(ARDUINO_HOME)/platform.txt $(ROOT_DIR)/bin/$(ARDUINO_ARCH)/platform.txt)
+runtime.platform.path = $(ARDUINO_HOME)
+include $(ROOT_DIR)/bin/$(ARDUINO_ARCH)/platform.txt
+
+SERIAL_PORT ?= /dev/tty.nodemcu
+
 
 BOARDS_TXT  = $(ARDUINO_HOME)/boards.txt
 PLATFORM_TXT  = $(ARDUINO_HOME)/platform.txt
