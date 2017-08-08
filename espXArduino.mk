@@ -17,13 +17,12 @@ ARDUINO_HOME ?=  $(ROOT_DIR)/$(ARDUINO_ARCH)
 ARDUINO_VARIANT ?= nodemcu
 ARDUINO_VERSION ?= 10605
 
-DUMMY := $(shell $(ROOT_DIR)/bin/generate_platform.sh $(ARDUINO_HOME)/platform.txt $(ROOT_DIR)/bin/$(ARDUINO_ARCH)/platform.txt)
+CREATE_PLATFORM := $(shell $(ROOT_DIR)/bin/generate_platform.sh $(ARDUINO_HOME)/platform.txt $(ROOT_DIR)/bin/$(ARDUINO_ARCH)/platform.txt)
 runtime.platform.path = $(ARDUINO_HOME)
 include $(ROOT_DIR)/bin/$(ARDUINO_ARCH)/platform.txt
 
+
 SERIAL_PORT ?= /dev/tty.nodemcu
-
-
 BOARDS_TXT  = $(ARDUINO_HOME)/boards.txt
 PLATFORM_TXT  = $(ARDUINO_HOME)/platform.txt
 PARSE_BOARD = $(ROOT_DIR)/bin/ard-parse-boards
@@ -86,6 +85,10 @@ BUILD_OUT ?= ./build.$(ARDUINO_VARIANT).$(NODENAME)
 else
 BUILD_OUT ?= ./build.$(ARDUINO_VARIANT)
 endif
+
+build.path = $(BUILD_OUT)
+#compiler_cpreprocessor_flags = $(shell $(PARSE_PLATFORM_CMD) compiler.cpreprocessor.flags)
+
 
 ### ESP8266 CORE
 CORE_SSRC = $(wildcard $(ARDUINO_HOME)/cores/$(ARDUINO_ARCH)/*.S)
@@ -160,7 +163,7 @@ LIB_CXXSRC := $(wildcard $(addsuffix /*.cpp,$(ULIBDIRS))) \
 OBJ_FILES = $(addprefix $(BUILD_OUT)/,$(notdir $(LIB_CSRC:.c=.c.o) $(LIB_CXXSRC:.cpp=.cpp.o) $(TARGET).fullino.o $(USER_SRC:.c=.c.o) $(USER_CXXSRC:.cpp=.cpp.o)))
 ifeq ($(ARDUINO_ARCH),esp8266)
 	CPREPROCESSOR_FLAGS = -D__ets__ -DICACHE_FLASH -U__STRICT_ANSI__ -I$(ESPRESSIF_SDK)/include -I$(ESPRESSIF_SDK)/lwip/include
-	ifeq ($(ARDUINO_CORE_VERSION), 2_4_0)
+	ifeq ($(ARDUINO_CORE_VERSION), 2.4.0)
 		CPREPROCESSOR_FLAGS += -I$(ESPRESSIF_SDK)/libc/xtensa-lx106-elf
 	endif
 else
@@ -202,7 +205,7 @@ ifeq ($(ARDUINO_ARCH),esp8266)
 	CXXFLAGS = -c -Os -g -mlongcalls -mtext-section-literals -fno-exceptions \
 		-fno-rtti -falign-functions=4 -std=c++11 -MMD -ffunction-sections -fdata-sections
 	ELFLIBS = -lm -lgcc -lhal -lphy -lpp -lnet80211 -lwpa -lcrypto -lmain -lwps -laxtls -lsmartconfig -lmesh -lwpa2 -llwip_gcc -lstdc++
-	ifeq ($(ARDUINO_CORE_VERSION), 2_4_0)
+	ifeq ($(ARDUINO_CORE_VERSION), 2.4.0)
 		ELFLIBS += -lespnow -lc
 		ELFFLAGS = -g -w -Os -nostdlib -Wl,--no-check-sections -u call_user_start -u _printf_float -u _scanf_float -Wl,-static \
 			-L$(ESPRESSIF_SDK)/lib -L$(ESPRESSIF_SDK)/ld -L$(ESPRESSIF_SDK)/libc/xtensa-lx106-elf/lib \
@@ -305,7 +308,8 @@ $(BUILD_OUT)/%.cpp.o: %.cpp
 	$(CXX) -D_TAG_=\"$(TAG)\" $(USER_DEFINE) $(DEFINES) $(CXXFLAGS) $(INCLUDES) $< -o $@	
 
 $(BUILD_OUT)/%.fullino: $(USER_INOSRC)
-	-$(CAT) $(TARGET).ino $(filter-out $(TARGET).ino,$^) > $@
+	@echo -en '#include <Arduino.h>\n' > $@
+	-@$(CAT) $(TARGET).ino $(filter-out $(TARGET).ino,$^) >> $@
 
 $(BUILD_OUT)/%.fullino.o: $(BUILD_OUT)/%.fullino
 	$(CXX) -x c++ -D_TAG_=\"$(TAG)\" $(USER_DEFINE) $(DEFINES) $(CXXFLAGS) $(INCLUDES) $< -o $@

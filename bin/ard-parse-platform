@@ -45,11 +45,11 @@ else
 	 ## remove all "
 	 ## replace { by $(
 	 ## replace } by )
-	 ## replace all . between ( ) by _
+	 ## ##replace all . by _
 	 $db->{$tag} =~ s/"//g;
 	 $db->{$tag} =~ s/\}/')'/g;
 	 $db->{$tag} =~ s/\{/'\$('/g;
-	 $db->{$tag} =~ s/\./_/g;
+	 ##$db->{$tag} =~ s/\./_/g;
     ##$val = s/\{/\$(/r;
 	 print $db->{$tag};
    ## print $db->{$tag}, "\n";
